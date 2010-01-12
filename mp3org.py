@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: latin1 -*-
-#       mp3org-0.0.0001
+#       mp3org-0.0.0002
 #       
 #       Copyright 2010 Eduardo Veiga <edu@bsd.com.br>
 #       
@@ -18,25 +18,21 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import shutil,tagpy
-import re, os, sys, random, bz2, urllib, time, shelve
-from unicodedata import normalize
+import shutil,tagpy,os,sys
 
-
-try:
-    import psyco
-    psyco.full()
-    psy = True
-except:
-    psy = False
-    pass
-    
     
 def erros(erro):
 	if erro == "sem saída":
 		print "você não especificou qual o diretório de saída"
 		print "ex: -o /home/usuário/diretório/"
 		exit()
+	elif erro == "usage":
+		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
+		exit(1)
+	elif erro == "help":
+		print "Help...I Need Somebody"
+		exit(1)
+		
 def mover(arquivo,extensao,saida):
 	a = tagpy.FileRef(arquivo)
 	tag = a.tag()
@@ -67,14 +63,15 @@ def mover(arquivo,extensao,saida):
 		return 0
 	print dirdst+filedst
 	
-	
-	os.makedirs(dirdst)
-	
-		
-	
+	try:
+		os.makedirs(dirdst)
+	except :
+		pass
+	if (os.path.isfile(dirdst+filedst)) is False:
 		 
-	shutil.copyfile(arquivo, dirdst+filedst)
-	
+		shutil.copyfile(arquivo, dirdst+filedst)
+	else: 
+		shutil.copyfile(arquivo, dirdst+filedst+extensao)
 	
 	
 	
@@ -82,8 +79,11 @@ def mover(arquivo,extensao,saida):
 def main():
 	entrada = ""
 	saida = ""
-	lista = ""
 	ext = ["mp3","mp4","m4a""aac","ogg","oga"]
+	if len(sys.argv) is 1:
+		erros("usage")
+	if sys.argv[1] is "-h" or "--help":
+		erros("help")
 	for index,item in enumerate(sys.argv):
 		if item == "-i":
 			entrada = sys.argv[index+1]
@@ -101,7 +101,10 @@ def main():
 		diretorio = item[0] 
 		for arquivo in item[2]:
 			print "arquivo: ",arquivo
-			fileext = arquivo[arquivo.rindex(".")+1:].lower()
+			try:
+				fileext = arquivo[arquivo.rindex(".")+1:].lower()
+			except:
+				pass
 			if fileext in ext:
 				mover("%s%s%s"%(diretorio, os.sep, arquivo),fileext,saida)
 	
