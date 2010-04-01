@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin1 -*-
+# -*- coding: utf8 -*-
 #       mp3org-0.0.5
 #       
 #       Copyright 2010 Eduardo Veiga <edu@bsd.com.br>
@@ -30,20 +30,37 @@ def erros(erro):
 		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
 		exit(1)
 	elif erro == "help":
-		print "Help...I Need Somebody"
+		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
+		print "-i especifica o diretório onde estao as entradas"
+		print "-r busca recursiva de entradas (PADRÃO)"
+		print "-o especifica diretório de saída"
+		print "ao especificar entradas e saidas inserir o caminho completo do diretório incluindo a barra no final do ultimo subdiretório"
 		exit(1)
+def print_all(dirdst=None,filedst=None,arquivo=None,tag=None,extensao=None):
+	if (tag!=None and dirdst!=None and filedst!=None and arquivo!=None and extensao):
+		try:
+			print "\tcopiando arquivo %s -->> %s"%(arquivo,dirdst+filedst)
+		except:
+			print"error"
+		print "\tMusica: %s"%(tag.title)
+		print "\tArtista: %s"%(tag.artist)
+		print "\tAlbum: %s"%(tag.album)
+		print "\tfaixa: %d"%(tag.track)
+		print "\tano: %d"%(tag.year)
+	else: 
+		#print "algo"
+		print "%s:	faixa sem tags"%(arquivo)
+	
 
 def setdirdst(tag,saida):
 	if(tag.artist and tag.album) != "" and (tag.year)!=0:
 	
 		dirdst = saida+"%s%s%s - %s%s"%(tag.artist,os.sep,tag.year,tag.album,os.sep)
-		print "tags is true"
 	elif(tag.artist and tag.album) != "":
 		dirdst = saida+"%s%s%s%s"%(tag.artist,os.sep,tag.album,os.sep)
 	elif(tag.artist) != "":
 		dirdst = saida+"%s%s"%(tag.artist,os.sep)
 	else:
-		print "faixa sem tags"
 		dirdst = 0
 	return dirdst
 
@@ -57,14 +74,16 @@ def setfiledst(tag,extensao):
 		filedst = "%s.%s"%(tag.title,extensao)
 		
 	else:
-		print "faixa sem tags"
 		filedst = 0
 	return filedst
 			
 def copiar(dirdst,filedst,arquivo,tag,extensao,n=0):
 	if (os.path.isfile(dirdst+filedst)) is False:
 		 
-		shutil.copyfile(arquivo, dirdst+filedst)
+		try:
+			shutil.copyfile(arquivo, dirdst+filedst)
+		except:
+			print "erro de E/S"
 	else: 
 		
 		extensao2 ="%s.%s"%(n+1,extensao)
@@ -73,33 +92,33 @@ def copiar(dirdst,filedst,arquivo,tag,extensao,n=0):
 		if os.path.isfile(dirdst+filedst2):
 			copiar(dirdst,filedst,arquivo,tag,extensao,n+1)
 		else:
-			shutil.copyfile(arquivo, dirdst+filedst2)
+			try:
+				shutil.copyfile(arquivo, dirdst+filedst2)
+			except:
+				print"erro de E/S"
 
 def run(arquivo,extensao,saida):
 	a = tagpy.FileRef(arquivo)
 	tag = a.tag()
-	print "artista:",tag.artist
-	print "ano",tag.year
-	print "album:",tag.album
-	print "faixa:",tag.track
-	print "título:",tag.title
 	
 	dirdst = setdirdst(tag,saida)
 	if dirdst == 0:
+		print_all(arquivo)
 		return 0
 		
-	print "dirdst: ",dirdst
+		
 	
 	filedst = setfiledst(tag,extensao)
 	if filedst == 0:
+		print_all()
 		return 0	
-	print "filedst: ",filedst
 	#print dirdst+filedst
 	
 	try:
 		os.makedirs(dirdst)
 	except :
 		pass
+	print_all(arquivo,dirdst,filedst,tag,extensao)
 	copiar(dirdst,filedst,arquivo,tag,extensao)
 	
 	
@@ -111,9 +130,8 @@ def main():
 	ext = ["mp3","mp4","m4a""aac","ogg","oga"]
 	if len(sys.argv) == 1:
 		erros("usage")
-	if ((sys.argv[1] is  "-h") or (sys.argv[1] is "--help")):
-		print sys.argv[1]
-		print sys.argv[1] is "--help" or "-h"
+	if ((sys.argv[1] ==  "-h") or (sys.argv[1] == "--help")):
+
 		erros("help")
 	else:
 		pass
@@ -133,21 +151,21 @@ def main():
 		#print item
 		diretorio = item[0] 
 		for arquivo in item[2]:
-			print "arquivo: ",arquivo
 			try:
 				fileext = arquivo[arquivo.rindex(".")+1:].lower()
+				print arquivo
+				
 			except:
-				pass
+				fileext = ""
+				print"erro ao processar %s	arquivo sem extensão"%(arquivo)
 			if fileext in ext:
+				print arquivo
 				run("%s%s%s"%(diretorio, os.sep, arquivo),fileext,saida)
 	
 	
 		
 
-	print "argv = ",sys.argv
-	print "entrada = ",entrada
-	print "saida = ",saida
-
 
 main()
+
 
