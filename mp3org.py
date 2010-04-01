@@ -30,11 +30,7 @@ def erros(erro):
 		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
 		exit(1)
 	elif erro == "help":
-		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
-		print "-i especifica o diretório onde estao as entradas"
-		print "-r busca recursiva de entradas (PADRÃO)"
-		print "-o especifica diretório de saída"
-		print "ao especificar entradas e saidas inserir o caminho completo do diretório incluindo a barra no final do ultimo subdiretório"
+		print "Help...I Need Somebody"
 		exit(1)
 
 def setdirdst(tag,saida):
@@ -115,8 +111,9 @@ def main():
 	ext = ["mp3","mp4","m4a""aac","ogg","oga"]
 	if len(sys.argv) == 1:
 		erros("usage")
-	if ((sys.argv[1] ==  "-h") or (sys.argv[1] == "--help")):
-
+	if ((sys.argv[1] is  "-h") or (sys.argv[1] is "--help")):
+		print sys.argv[1]
+		print sys.argv[1] is "--help" or "-h"
 		erros("help")
 	else:
 		pass
