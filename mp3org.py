@@ -27,15 +27,27 @@ def erros(erro):
 		print "ex: -o /home/usuário/diretório/"
 		exit()
 	elif erro == "usage":
-		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
+		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida  {modo de operação}"
+
 		exit(1)
 	elif erro == "help":
-		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida"
+		print "USAGE: musorg -i diretorio_de_entrada/ -o diretorio_de_saida {modo de operação}"
 		print "-i especifica o diretório onde estao as entradas"
 		print "-r busca recursiva de entradas (PADRÃO)"
 		print "-o especifica diretório de saída"
 		print "ao especificar entradas e saidas inserir o caminho completo do diretório incluindo a barra no final do ultimo subdiretório"
+		print"modo de operação:"
+		print"-m: move arquivos para um novo diretório"
+		print"-c: copia arquivos para um novo diretório"
 		exit(1)
+	elif erro =="sem modo":
+		print"selecione um modo de operação:"
+		print"-m: move arquivos para um novo diretório"
+		print"-c: copia arquivos para um novo diretório"
+		exit(1)
+		
+		
+		
 def print_all(dirdst=None,filedst=None,arquivo=None,tag=None,extensao=None):
 	if (tag!=None and dirdst!=None and filedst!=None and arquivo!=None and extensao):
 		try:
@@ -52,10 +64,12 @@ def print_all(dirdst=None,filedst=None,arquivo=None,tag=None,extensao=None):
 		print "%s:	faixa sem tags"%(arquivo)
 	
 
+
+
 def setdirdst(tag,saida):
 	if(tag.artist and tag.album) != "" and (tag.year)!=0:
 	
-		dirdst = saida+"%s%s%s - %s%s"%(tag.artist,os.sep,tag.year,tag.album,os.sep)
+		dirdst = saida+"%s%s%s%s - %s%s"%(os.sep,tag.artist,os.sep,tag.year,tag.album,os.sep)
 	elif(tag.artist and tag.album) != "":
 		dirdst = saida+"%s%s%s%s"%(tag.artist,os.sep,tag.album,os.sep)
 	elif(tag.artist) != "":
@@ -63,6 +77,10 @@ def setdirdst(tag,saida):
 	else:
 		dirdst = 0
 	return dirdst
+
+
+
+
 
 def setfiledst(tag,extensao):
 	if(tag.title) != "" and (tag.title)!=0:
@@ -77,6 +95,27 @@ def setfiledst(tag,extensao):
 		filedst = 0
 	return filedst
 			
+
+def mover(dirdst,filedst,arquivo,tag,extensao,n=0):
+	if (os.path.isfile(dirdst+filedst)) is False:
+		 
+		try:
+			shutil.move(arquivo, dirdst+filedst)
+		except:
+			print "erro de E/S"
+	else: 
+		
+		extensao2 ="%s.%s"%(n+1,extensao)
+		filedst2=setfiledst(tag,extensao2)
+		
+		if os.path.isfile(dirdst+filedst2):
+			mover(dirdst,filedst,arquivo,tag,extensao,n+1)
+		else:
+			try:
+				shutil.move(arquivo, dirdst+filedst2)
+			except:
+				print"erro de E/S"	
+						
 def copiar(dirdst,filedst,arquivo,tag,extensao,n=0):
 	if (os.path.isfile(dirdst+filedst)) is False:
 		 
@@ -96,8 +135,13 @@ def copiar(dirdst,filedst,arquivo,tag,extensao,n=0):
 				shutil.copyfile(arquivo, dirdst+filedst2)
 			except:
 				print"erro de E/S"
+				
+				
+				
+				
+				
 
-def run(arquivo,extensao,saida):
+def run(arquivo,extensao,saida,mode):
 	a = tagpy.FileRef(arquivo)
 	tag = a.tag()
 	
@@ -119,7 +163,15 @@ def run(arquivo,extensao,saida):
 	except :
 		pass
 	print_all(arquivo,dirdst,filedst,tag,extensao)
-	copiar(dirdst,filedst,arquivo,tag,extensao)
+	if mode ==1:
+		mover(dirdst,filedst,arquivo,tag,extensao)
+	elif mode ==2:
+		copiar(dirdst,filedst,arquivo,tag,extensao)
+	else:
+		pass
+	
+	
+	
 	
 	
 	
@@ -128,6 +180,7 @@ def main():
 	entrada = ""
 	saida = ""
 	ext = ["mp3","mp4","m4a""aac","ogg","oga"]
+	mode = 0
 	if len(sys.argv) == 1:
 		erros("usage")
 	if ((sys.argv[1] ==  "-h") or (sys.argv[1] == "--help")):
@@ -147,6 +200,12 @@ def main():
 	if saida is "":
 		erros("sem saída")	
 	
+	if '-m' in sys.argv:
+		mode = 1
+	elif '-c' in sys.argv:
+		mode = 2
+	else:
+		erros("sem modo")
 	for item in os.walk(entrada):
 		#print item
 		diretorio = item[0] 
@@ -160,12 +219,13 @@ def main():
 				print"erro ao processar %s	arquivo sem extensão"%(arquivo)
 			if fileext in ext:
 				print arquivo
-				run("%s%s%s"%(diretorio, os.sep, arquivo),fileext,saida)
+				run("%s%s%s"%(diretorio, os.sep, arquivo),fileext,saida,mode)
 	
 	
+		
+		
+		
 		
 
 
 main()
-
-
